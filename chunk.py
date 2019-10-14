@@ -1,13 +1,12 @@
 from typing import List, Dict
-from instruction import Instruction
-from operand import OperandType
+from instruction import UnformedInstruction
 from instruction import make_instruction
 
 
 class Chunk:
     def __init__(self, starting_line: int):
         self.starting_line = starting_line
-        self.instructions: List[Instruction] = []
+        self.instructions: List[UnformedInstruction] = []
 
     def empty(self):
         return len(self.instructions) == 0
@@ -20,9 +19,10 @@ class Chunk:
             for j in range(len(self.instructions[i].operands)):
                 self.instructions[i].operands[j].resolve(label_dict)
 
-    def serialize(self) -> List[int]:
-        return [make_instruction(instruction).serialize() for instruction in self.instructions]
-
+    def serialize(self, memory: List[int]):
+        for offset, instruction in enumerate(self.instructions):
+            address = self.starting_line + offset
+            memory[address] = make_instruction(instruction).serialize()
 
     def __str__(self):
         lines = []

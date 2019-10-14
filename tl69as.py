@@ -15,6 +15,29 @@ def resolve_labels(chunks: List[Chunk], label_dict: Dict[str, int]):
         chunks[i].resolve(label_dict)
 
 
+def to_intel_hex(memory: List[int], width: int):
+    record_type = "00"
+    output = ""
+    for address, data in enumerate(memory):
+        hex_data = f"{data:02X}".zfill(width)
+
+        checksum = width // 2
+        lol_address = address
+        while lol_address > 0:
+            checksum = checksum + lol_address & 0xff
+            lol_address = lol_address >> 8
+
+        while data > 0:
+            checksum = checksum + data & 0xff
+            data = data >> 8
+
+        checksum = (-checksum) & 0xff
+
+        line = f":{(width // 2):02X}{address:04X}{record_type}{hex_data}{checksum:02X}\n"
+        output += line
+    output += ":00000001FF\n"
+    return output
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='TL69 assembler')
     parser.add_argument("-o", required=True, type=str, metavar='output_prefix')
@@ -39,7 +62,6 @@ if __name__ == '__main__':
         print(chunk)
         print()
 
-    print("resolving...")
     for key, val in label_dict.items():
         print(f"{key} -> {val}")
     resolve_labels(chunks, label_dict)
@@ -54,10 +76,16 @@ if __name__ == '__main__':
                                                                                                w.starting_line,
                                                                                                len(w.instructions)))
 
-    memory = []
+    memory: List[int] = [0 for i in range(chunks[-1].next_line_number())]
 
     for chunk in chunks:
-        memory.extend(chunk.serialize())
+        chunk.serialize(memory)
 
-    for instruction in memory:
-        print("{:032b}".format(instruction))
+    for line in memory:
+        print(f"{line:0X}")
+
+    with open((f'{args.o}.hex'), 'w') as seqFile:
+        data_width = 32
+        seqFile.write(to_intel_hex(memory, data_width))
+        seqFile.flush()
+

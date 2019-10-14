@@ -18,6 +18,14 @@ class UnformedInstruction:
 
 class Instruction:
     operand_types = None
+    opcode = None
+    reserved_bits = None
+
+    def __init__(self, dst: Register = None, src1: Register = None, src2: Register = None, imm: Immediate = None):
+        self.dst: Register = dst
+        self.src1: Register = src1
+        self.src2: Register = src2
+        self.imm: Immediate = imm
 
     def serialize(self) -> int:
         pass
@@ -67,9 +75,7 @@ class ThreeRegs(Instruction):
     reserved_bits = 0b000
 
     def __init__(self, dst: Register, src1: Register, src2: Register):
-        self.dst = dst
-        self.src1 = src1
-        self.src2 = src2
+        super().__init__(dst, src1, src2)
 
     def serialize(self) -> int:
         return self.addOpcode() + self.addReservedBits() + self.addDst() + self.addSrc1() + self.addSrc2()
@@ -80,30 +86,74 @@ class TwoRegsImm(Instruction):
     reserved_bits = 0b100
 
     def __init__(self, dst: Register, src1: Register, imm: Immediate):
-        self.dst = dst
-        self.src1 = src1
-        self.imm = imm
+        super().__init__(dst, src1, imm=imm)
 
     def serialize(self) -> int:
         return self.addOpcode() + self.addReservedBits() + self.addDst() + self.addSrc1() + self.addImm()
 
 
-class ADD(ThreeRegs):
-    opcode = 0x1
+class TwoRegs(Instruction):
+    operand_types = [OperandType.REGISTER, OperandType.REGISTER]
     reserved_bits = 0b000
 
+    def __init__(self, dst: Register, src1: Register):
+        super().__init__(dst, src1)
 
-class ADDI(TwoRegsImm):
-    opcode = 0x1
-    reserved_bits = 0b100
+    def serialize(self) -> int:
+        return self.addOpcode() + self.addReservedBits() + self.addDst() + self.addSrc1()
 
+
+class NoRegs(Instruction):
+    operand_types = []
+    reserved_bits = 0b000
+
+    def serialize(self) -> int:
+        return self.addOpcode() + self.addReservedBits()
+
+
+def ins_class_rrr(name: str, opcode: int, reserved_bits: int = 0b000) -> type(Instruction):
+    return type(name, (ThreeRegs,), {'opcode': opcode, 'reserved_bits': reserved_bits})
+
+
+def ins_class_rri(name: str, opcode: int, reserved_bits: int = 0b000) -> type(Instruction):
+    return type(name, (TwoRegsImm,), {'opcode': opcode, 'reserved_bits': reserved_bits})
+
+
+def ins_class_rr(name: str, opcode: int, reserved_bits: int = 0b000) -> type(Instruction):
+    return type(name, (TwoRegs,), {'opcode': opcode, 'reserved_bits': reserved_bits})
+
+
+def ins_class_none(name: str, opcode: int, reserved_bits: int = 0b000) -> type(Instruction):
+    return type(name, (NoRegs,), {'opcode': opcode, 'reserved_bits': reserved_bits})
+
+
+instructions: List[Type[Instruction]] = [
+    ins_class_rrr("ADD", 0x1, 0b000),
+    ins_class_rri("ADDI", 0x1, 0b100),
+    ins_class_rrr("SUB", 0x2, 0b000),
+    ins_class_rri("SUBI", 0x2, 0b100),
+    ins_class_rrr("MUL", 0x3, 0b000),
+    ins_class_rri("MULI", 0x3, 0b100),
+    ins_class_rrr("XCHG", 0x4, 0b000),
+    ins_class_rrr("CMP", 0x5, 0b000),
+    ins_class_rri("CMPI", 0x5, 0b100),
+    ins_class_rrr("OR", 0x6, 0b000),
+    ins_class_rri("ORI", 0x6, 0b100),
+    ins_class_rrr("XOR", 0x7, 0b000),
+    ins_class_rri("XORI", 0x7, 0b100),
+    ins_class_rrr("AND", 0x8, 0b000),
+    ins_class_rri("ANDI", 0x8, 0b100),
+    ins_class_rr("NOT", 0x9, 0b000),
+    # SHR
+    # SHL
+    ins_class_none("HALT", 0x1f)
+]
 
 instruction_dict: Dict[str, Type[Instruction]] = {
-    'add': ADD,
-    'addi': ADDI,
-    # 'sub': SUB,
-    # 'subi': SUBI,
 }
+
+for instruction in instructions:
+    instruction_dict[instruction.__name__.lower()] = instruction
 
 
 def make_instruction(unformed_instruction: UnformedInstruction) -> Instruction:
