@@ -58,13 +58,12 @@ if __name__ == '__main__':
     walker.walk(listener, tree)
     label_dict = listener.label_dict
     chunks = listener.lines
+
+    resolve_labels(chunks, label_dict)
+
     for chunk in listener.lines:
         print(chunk)
         print()
-
-    for key, val in label_dict.items():
-        print(f"{key} -> {val}")
-    resolve_labels(chunks, label_dict)
 
     chunks.sort()
 
@@ -82,10 +81,11 @@ if __name__ == '__main__':
         chunk.serialize(memory)
 
     for line in memory:
-        print(f"{line:0X}")
+        # print(f"{line:08X}")
+        print(f"{line:032b} {line:08X}")
 
-    with open((f'{args.o}.hex'), 'w') as seqFile:
-        data_width = 32
+    with open(f'{args.o}.hex', 'w') as seqFile:
+        data_width = 8
         seqFile.write(to_intel_hex(memory, data_width))
         seqFile.flush()
 

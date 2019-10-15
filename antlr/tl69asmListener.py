@@ -134,3 +134,12 @@ class tl69asmListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by tl69asmParser#comment.
+    def enterComment(self, ctx:tl69asmParser.CommentContext):
+        pass
+
+    # Exit a parse tree produced by tl69asmParser#comment.
+    def exitComment(self, ctx:tl69asmParser.CommentContext):
+        pass
+
+

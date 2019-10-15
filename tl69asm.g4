@@ -1,8 +1,8 @@
 grammar tl69asm;
 
-tl69asmProg: (tl69asmLine? EOL)+ EOF;
+tl69asmProg: (tl69asmLine EOL)* tl69asmLine EOL? EOF;
 
-tl69asmLine: label? (directive|instruction);
+tl69asmLine: label? (directive|instruction)? comment?;
 label: ID COLON;
 
 directive: (directiveDW | directiveORG | directiveEQU);
@@ -20,10 +20,10 @@ operand: (integer | register | labelRef);
 labelRef: ID;
 register: Register;
 integer: INT_HEX | INT_DEC | INT_BIN | INT_OCT;
-INT_HEX: ('0x'|'0X'|'&H'|'&h')[0-9A-Fa-f]+;
-INT_BIN: ('0b'|'&b'|'&B')[0-1]+;
-INT_OCT: ('&O'|'&o')[0-7]+;
-INT_DEC: [0-9]+;
+INT_HEX: SUB? ('0x'|'0X'|'&H'|'&h')[0-9A-Fa-f]+;
+INT_BIN: SUB? ('0b'|'&b'|'&B')[0-1]+;
+INT_OCT: SUB? ('&O'|'&o')[0-7]+;
+INT_DEC: SUB? [0-9]+;
 
 White_Space: [ \t]+ -> skip;
 EOL: [\r\n]+;
@@ -67,7 +67,12 @@ DIR_ORG: O R G;
 
 Register: [rR][0-9]* | S P | B P;
 
-OpCode: OpADDI
+OpCode: ALUOps
+| ControlFlowOps
+| IOOps
+| MemoryOps;
+
+fragment ALUOps: OpADDI
 | OpADD
 | OpSUBI
 | OpSUB
@@ -82,9 +87,16 @@ OpCode: OpADDI
 | OpXOR
 | OpANDI
 | OpAND
-| OpNOT
+| OpNOT;
+
+fragment ControlFlowOps:
+Jumps
+| FunctionCallOps
+| OpHALT
 ;
 
+fragment IOOps: OpOUT
+| OpIN;
 
 OpADDI: A D D I;
 OpADD: A D D;
@@ -103,9 +115,62 @@ OpANDI: A N D I;
 OpAND: A N D;
 OpNOT: N O T;
 
+OpOUT: O U T;
+OpIN: I N;
+
+fragment Jumps : OpJO
+| OpJNO
+| OpJS
+| OpJNS
+| OpJE
+| OpJNE
+| OpJB
+| OpJNB
+| OpJBE
+| OpJA
+| OpJL
+| OpJGE
+| OpJLE
+| OpJG
+| OpJMP;
+
+OpJO: J O;
+OpJNO: J N O;
+OpJS: J S;
+OpJNS: J N S;
+OpJE: J E;
+OpJNE: J N E;
+OpJB: J B;
+OpJNB: J N B;
+OpJBE: J B E;
+OpJA: J A;
+OpJL: J L;
+OpJGE: J G E;
+OpJLE: J L E;
+OpJG: J G;
+OpJMP: J M P;
+
+fragment FunctionCallOps: OpCALL
+| OpRET;
+
+OpCALL: C A L L;
+OpRET: R E T;
+
+fragment MemoryOps: OpPUSH
+| OpPOP
+| OpLW
+| OpSW;
+
+OpPUSH: P U S H;
+OpPOP: P O P;
+OpLW: L W;
+OpSW: S W;
+
 OpHALT: H A L T;
 
 ID: [a-zA-Z_$%][a-zA-Z0-9_$%]*;
+
+comment: COMMENT;
 
 COMMENT: ';' ~ [\r\n]* -> skip;
 DOUBLE_SLASH_COMMENT: '//'~[\r\n]* -> skip;

@@ -16,14 +16,17 @@ class Register:
         "R11": 11,
         "R12": 12,
         "R13": 13,
-        "SP": 14,
-        "BP": 15,
+        "BP": 14,
+        "SP": 15,
     }
 
-    def __init__(self, name: str):
-        if not name.upper() in Register.register_dict:
-            raise Exception(f"{name} is not a valid register name!")
-        self.register = name.upper()
+    def __init__(self, name: str = "", num: int = -1):
+        if num == -1:
+            if not name.upper() in Register.register_dict:
+                raise Exception(f"{name} is not a valid register name!")
+            self.register = name.upper()
+        else:
+            self.register = [k for k, v in Register.register_dict.items() if v == num][0]
 
     def num(self) -> int:
         return Register.register_dict[self.register]

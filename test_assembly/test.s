@@ -1,13 +1,20 @@
-;thing: equ 0x89
-;org 50
-;ADDI r1, r0, 0x01
-;dw 0x78
-;one: ADDI r2, r1, two
-;ADDI r3, r2, 0x03
-;two: ADDI r4, r3, 0x04
-;org thing
-;ADD r7, r6, r5
-;
-;bye: equ 50 ; lol
-ADD r7, r3, r1
-ADDI r7, r3, 0xcafe
+ADDI r1, r0, 0  ; int x1 = 0 (smaller)
+ADDI r2, r0, 1  ; int x2 = 1 (larger)
+
+ADDI r3, r0, 10 ; int iterations = 10
+
+loop:
+JE done
+
+ADD r1, r1, r2  ; x1 = x1 + x2
+XCHG r1, r2     ; x1, x2 = x2, x1
+OUT r2, 0xFF
+ADDI r3, r3, -1  ; Load flags for r3
+
+JMP loop
+
+done:
+ADD r4, r0, r2  ; r4 = r2
+HALT
+
+; 0 1 1 2 3 5 8
