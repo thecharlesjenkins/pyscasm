@@ -1,4 +1,5 @@
 from typing import List, Dict
+import struct
 
 import argparse
 
@@ -42,6 +43,7 @@ def to_intel_hex(memory: List[int], width: int):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SCOMP assembler')
     parser.add_argument("-o", required=True, type=str, metavar='output_prefix')
+    parser.add_argument("-b", action='store_true')
     parser.add_argument('file', type=str)
 
     args = parser.parse_args()
@@ -85,7 +87,14 @@ if __name__ == '__main__':
         # print(f"{line:08X}")
         print(f"{line:016b} {line:04X}")
 
-    with open(f'{args.o}.hex', 'w') as seqFile:
-        data_width = 8
-        seqFile.write(to_intel_hex(memory, data_width))
-        seqFile.flush()
+    if args.b:
+        with open(f'{args.o}.bin', 'wb') as binFile:
+            for i in range(0, len(memory)) :
+                binFile.write(struct.pack(">H", memory[i]))
+            binFile.flush()
+    else:
+        with open(f'{args.o}.hex', 'w') as seqFile:
+            data_width = 8
+            seqFile.write(to_intel_hex(memory, data_width))
+            seqFile.flush()
+
