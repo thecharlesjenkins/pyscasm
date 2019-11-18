@@ -3,10 +3,10 @@ from typing import List, Dict
 import argparse
 
 from antlr4 import *
-from antlr.tl69asmLexer import tl69asmLexer
-from antlr.tl69asmParser import tl69asmParser
+from antlr.scasmLexer import scasmLexer
+from antlr.scasmParser import scasmParser
 
-from tl69asm_listener import TL69ASMListener
+from scasm_listener import SCASMListener
 from chunk import Chunk
 
 
@@ -38,8 +38,9 @@ def to_intel_hex(memory: List[int], width: int):
     output += ":00000001FF\n"
     return output
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='TL69 assembler')
+    parser = argparse.ArgumentParser(description='SCOMP assembler')
     parser.add_argument("-o", required=True, type=str, metavar='output_prefix')
     parser.add_argument('file', type=str)
 
@@ -47,12 +48,12 @@ if __name__ == '__main__':
 
     filename = args.file
     input = FileStream(filename)
-    lexer = tl69asmLexer(input)
+    lexer = scasmLexer(input)
     stream = CommonTokenStream(lexer)
-    parser = tl69asmParser(stream)
-    tree = parser.tl69asmProg()  # Parse Root
+    parser = scasmParser(stream)
+    tree = parser.scasmProg()  # Parse Root
 
-    listener = TL69ASMListener()
+    listener = SCASMListener()
     walker = ParseTreeWalker()
 
     walker.walk(listener, tree)
@@ -62,8 +63,8 @@ if __name__ == '__main__':
     resolve_labels(chunks, label_dict)
 
     for chunk in listener.lines:
+        print("----chunk---")
         print(chunk)
-        print()
 
     chunks.sort()
 
@@ -82,10 +83,9 @@ if __name__ == '__main__':
 
     for line in memory:
         # print(f"{line:08X}")
-        print(f"{line:032b} {line:08X}")
+        print(f"{line:016b} {line:04X}")
 
     with open(f'{args.o}.hex', 'w') as seqFile:
         data_width = 8
         seqFile.write(to_intel_hex(memory, data_width))
         seqFile.flush()
-

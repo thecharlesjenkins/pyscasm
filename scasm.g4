@@ -1,8 +1,8 @@
-grammar tl69asm;
+grammar scasm;
 
-tl69asmProg: (tl69asmLine EOL)* tl69asmLine EOL? EOF;
+scasmProg: (scasmLine EOL)* scasmLine EOL? EOF;
 
-tl69asmLine: label? (directive|instruction)? comment?;
+scasmLine: label? (directive|instruction)? comment?;
 label: ID COLON;
 
 directive: (directiveDW | directiveORG | directiveEQU);
@@ -67,12 +67,45 @@ DIR_ORG: O R G;
 
 Register: [rR][0-9]* | S P | B P;
 
-OpCode: ALUOps
-| ControlFlowOps
-| IOOps
-| MemoryOps;
+OpCode: OpNOP
+| OpLOAD
+| OpSTORE
+| OpADD
+| OpSUB
+| OpJUMP
+| OpJNEG
+| OpJPOS
+| OpJZERO
+| OpAND
+| OpOR
+| OpXOR
+| OpSHIFT
+| OpADDI
+| OpILOAD
+| OpISTORE
+| OpCALL
+| OpRETURN
+| OpIN
+| OpOUT
+| OpCLI
+| OpSEI
+| OpRETI
+| OpLOADI;
+
+OpJUMP: J U M P;
+OpJNEG: J N E G;
+OpJPOS: J P O S;
+OpJZERO: J Z E R O;
+OpSHIFT: S H I F T;
+OpILOAD: I L O A D;
+OpISTORE: I S T O R E;
+OpCLI: C L I;
+OpSEI: S E I;
+OpRETI: R E T I;
+OpLOADI: L O A D I;
 
 fragment ALUOps: OpADDI
+| OpNOP
 | OpADD
 | OpSUBI
 | OpSUB
@@ -98,6 +131,7 @@ Jumps
 fragment IOOps: OpOUT
 | OpIN;
 
+OpNOP: N O P;
 OpADDI: A D D I;
 OpADD: A D D;
 OpSUBI: S U B I;
@@ -149,12 +183,14 @@ OpJGE: J G E;
 OpJLE: J L E;
 OpJG: J G;
 OpJMP: J M P;
+OpLOAD: L O A D;
+OpSTORE: S T O R E;
 
 fragment FunctionCallOps: OpCALL
-| OpRET;
+| OpRETURN;
 
 OpCALL: C A L L;
-OpRET: R E T;
+OpRETURN: R E T U R N;
 
 fragment MemoryOps: OpPUSH
 | OpPOP
