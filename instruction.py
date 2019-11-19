@@ -48,6 +48,9 @@ class Instruction:
                 parsed_operands.append(Immediate(operands[i].value))
         return parsed_operands
 
+    def addSmIMM(self) -> int:
+        return (0x7FF) & self.imm.smval
+
     def addImm(self) -> int:
         return (0x7FF) & self.imm.val
 
@@ -56,6 +59,16 @@ class Instruction:
 
     def addOpcode(self) -> int:
         return self.opcode << 11
+
+
+class SMImm(Instruction):
+    operand_types = [OperandType.INTEGER]
+
+    def __init__(self, imm: Immediate):
+        super().__init__(imm)
+
+    def serialize(self) -> int:
+        return self.addOpcode() + self.addSmIMM()
 
 
 class Imm(Instruction):
@@ -82,11 +95,13 @@ class Nothing(Instruction):
     operand_types = []
 
     def __init__(self):
-        super().__init__(0)
+        super().__init__()
 
     def serialize(self) -> int:
         return self.addOpcode()
 
+def inst_class_smi(name: str, opcode: int) -> type(Instruction):
+    return type(name, (SMImm, ), {'opcode': opcode})
 
 def ins_class_i(name: str, opcode: int) -> type(Instruction):
     return type(name, (Imm,), {'opcode': opcode})
@@ -113,7 +128,7 @@ instructions: List[Type[Instruction]] = [
     ins_class_i("AND", 0x09),
     ins_class_i("OR", 0x0A),
     ins_class_i("XOR", 0x0B),
-    ins_class_i("SHIFT", 0x0C),
+    inst_class_smi("SHIFT", 0x0C),
     ins_class_i("ADDI", 0x0D),
     ins_class_i("ILOAD", 0x0E),
     ins_class_i("ISTORE", 0x0F),
