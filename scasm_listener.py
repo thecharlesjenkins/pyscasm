@@ -23,6 +23,9 @@ class SCASMListener(ParseTreeListener):
     def exitScasmLine(self, ctx: scasmParser.ScasmLineContext):
         if ctx.label():
             label_name = ctx.label().label_name
+            if label_name in self.label_dict:
+                print(f'DUPLICATE LABEL: "{label_name}"')
+                exit(-1)
             self.label_dict[label_name] = self.get_line_number()
 
         if ctx.instruction():
