@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SCOMP assembler')
     parser.add_argument("-o", required=True, type=str, metavar='output_prefix')
     parser.add_argument("-b", action='store_true')
-    parser.add_argument("-a", action='store_true', help='Set output as Altera assembly')
+    parser.add_argument("-a", action='store_true', help='')
     parser.add_argument('file', type=str)
 
     args = parser.parse_args()
@@ -101,7 +101,7 @@ if __name__ == '__main__':
             header_text = header.read()
         with open(os.path.join(os.path.dirname(__file__), "asm_footer.txt")) as footer:
             footer_text = footer.read()
-        with open(f'{args.o}.asm', 'w') as seqFile:
+        with open(f'{args.o}.mif', 'w') as seqFile:
             data_width = 8
             seqFile.write(header_text)
             seqFile.writelines(asm)
